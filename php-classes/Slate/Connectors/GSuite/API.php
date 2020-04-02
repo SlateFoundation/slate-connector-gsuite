@@ -166,6 +166,18 @@ class API
         return $DomainEmailPoint;
     }
 
+    protected static function getAuthorizationHeaders($scope, $user = null)
+    {
+        $accessToken = static::getAccessToken(
+            $scope,
+            $user
+        );
+
+        return [
+            'Authorization' => 'Bearer '. $accessToken
+        ];
+    }
+
     public static function getAccessToken($scope, $user = null, $ignoreCache = false)
     {
         $cacheKey = sprintf('gsuite_accesstoken:%s/%s', $scope, $user ? $user : static::$clientEmail);
@@ -229,14 +241,7 @@ class API
 
     public static function getAllUsers($params = [])
     {
-        $accessToken = static::getAccessToken(
-            'https://www.googleapis.com/auth/admin.directory.user',
-            (string)static::getDomainEmail()
-        );
-
-        $headers = [
-            'Authorization' => 'Bearer '. $accessToken
-        ];
+        $headers = static::getAuthorizationHeaders('https://www.googleapis.com/auth/admin.directory.user', (string)static::getDomainEmail());
 
         $params['domain'] = static::$domain;
         $path = new Uri('https://www.googleapis.com/admin/directory/v1/users');
@@ -247,5 +252,19 @@ class API
             $params,
             $headers
         );
+    }
+
+    // Patch user: https://developers.google.com/admin-sdk/directory/v1/reference/users/patch
+    public static function patchUser($userKey, $data)
+    {
+        $headers = static::getAuthorizationHeaders('https://www.googleapis.com/auth/admin.directory.user', (string)static::getDomainEmail());
+        return static::buildAndExecuteRequest('PATCH', "/admin/directory/v1/users/$userKey", $data, $headers);
+    }
+
+    // Create user: https://developers.google.com/admin-sdk/directory/v1/reference/users/insert
+    public static function createUser($data)
+    {
+        $headers = static::getAuthorizationHeaders('https://www.googleapis.com/auth/admin.directory.user', (string)static::getDomainEmail());
+        return static::executeRequest('POST', "/admin/directory/v1/users", $data, $headers);
     }
 }
