@@ -151,13 +151,13 @@ class API
             $User = $GLOBALS['Session']->Person;
         }
 
-        if (is_a($User->PrimaryEmail, Email::class) && $User->PrimaryEmail->getDomainName() == API::$domain) {
+        if (is_a($User->PrimaryEmail, Email::class) && $User->PrimaryEmail->getDomainName() == static::$domain) {
             return $User->PrimaryEmail;
         }
 
         $DomainEmailPoint = null;
         foreach ($User->ContactPoints AS $ContactPoint) {
-            if (is_a($ContactPoint, Email::class) && $ContactPoint->getDomainName() == API::$domain) {
+            if (is_a($ContactPoint, Email::class) && $ContactPoint->getDomainName() == static::$domain) {
                 $DomainEmailPoint = $ContactPoint;
                 break;
             }
@@ -197,7 +197,7 @@ class API
             }
 
             $params = [
-                'assertion' => JWT::encode($assertion, API::$privateKey, 'RS256'),
+                'assertion' => JWT::encode($assertion, static::$privateKey, 'RS256'),
                 'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer'
             ];
 
@@ -206,7 +206,7 @@ class API
             Cache::store(
                 $cacheKey,
                 $token,
-                $response['expires_in'] - API::$skew
+                $response['expires_in'] - static::$skew
             );
         }
 
