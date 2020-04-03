@@ -104,6 +104,7 @@ class CreateEvent implements ICommand
                 if (!isset($attendee['email'])) {
                     throw new \Exception('Invalid event attendee');
                 }
+                $formattedAttendees[] = $attendee;
             }
         }
 

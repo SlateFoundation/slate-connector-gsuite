@@ -36,8 +36,7 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
                     '</footer>',
                 '</div>',
             '</div>'
-        ],
-        attendees: []
+        ]
     },
 
     constructor: function() {
@@ -60,20 +59,29 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
 
         var me = this,
             body = Ext.getBody(),
-            formEl = me.getFormEl() || me.createForm(),
-            attendeesValue = Ext.fly(ev.target).getAttribute('data-event-attendees'),
+            target = Ext.fly(ev.target),
+            attendeesValue = target.getAttribute('data-event-attendees'),
             attendees = Ext.isString(attendeesValue) ? attendeesValue.split(',') : [],
-            tplData = {
-                title: 'Create Section Google Calendar Event',
-                formHtml: formEl.dom.outerHTML,
-                attendees: attendees
-            },
-            modal;
+            modal,
+            formEl,
+            customFormFields = {};
 
+        Ext.iterate(target.getAttributes(), function(field, value) {
+            var matches;
+            if ((matches = field.match(/^data-event-(.+)/))) {
+                customFormFields[matches[1]] = value;
+            }
+        });
+
+        formEl = me.createForm(customFormFields);
         modalTpl = Ext.create('Ext.XTemplate', me.getModalTpl());
         modal = modalTpl.append(
             body,
-            tplData,
+            {
+                title: target.getAttribute('data-title') || 'Create Google Calendar Event',
+                formHtml: formEl.dom.outerHTML,
+                attendees: attendees
+            },
             true
         );
 
@@ -98,7 +106,6 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
         );
 
         me.setModal(modal);
-        me.setAttendees(attendees);
     },
 
     destroyModal: function() {
@@ -110,13 +117,26 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
         modal.destroy();
     },
 
-    createForm: function() {
+    createForm: function(customFieldValues) {
         var me = this,
-            formEl;
+            formEl,
+            _createHiddenField = function(name, value) {
+                return {
+                    tag: 'input',
+                    type: 'hidden',
+                    name: name,
+                    value: value
+                }
+            },
+            hiddenFormFields = [];
+
+        Ext.iterate(customFieldValues, function(name, value) {
+            hiddenFormFields.push(_createHiddenField(name, value));
+        });
 
         formEl = Ext.get(Ext.DomHelper.createDom({
             tag: 'form',
-            cls: 'section-event-creator',
+            cls: 'google-calendar-event-creator',
             cn: [{
                 tag: 'label',
                 cls: 'field text-field is-required',
@@ -131,7 +151,6 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
                     name: 'title',
                     placeholder: 'Title',
                     required: 'true'
-                    ,value: 'GoogleCalendarEventTest'
                 }]
             },{
                 tag: 'div',
@@ -150,7 +169,6 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
                         name: 'start_date',
                         placeholder: 'Start Date',
                         required: true
-                        ,value: '2020-03-30'
                     }]
                 },{
                     tag: 'label',
@@ -166,7 +184,6 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
                         name: 'start_time',
                         placeholder: 'End Time',
                         required: true
-                        ,value: '20:00'
                     }]
                 }]
             },{
@@ -186,7 +203,6 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
                         name: 'end_date',
                         placeholder: 'End Date',
                         required: true
-                        ,value: '2020-03-30'
                     }]
                 },{
                     tag: 'label',
@@ -202,9 +218,11 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
                         name: 'end_time',
                         placeholder: 'End Time',
                         required: true
-                        ,value: '21:00'
                     }]
                 }]
+            }, {
+                tag: 'div',
+                cn: hiddenFormFields
             }]
         }))
 
@@ -228,12 +246,16 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
                 summary: titleField.getValue(),
                 startDateTime: startDateField.getValue() + 'T' + startTimeField.getValue() + ':00' + localTimezone,
                 endDateTime: endDateField.getValue() + 'T' + endTimeField.getValue() + ':00' + localTimezone,
-                'attendees[]': me.getAttendees(),
                 // create hangout support
                 'conferenceData[createRequest][requestId]': date.getTime().toString(),
                 conferenceDataVersion: 1
 
-            };
+            },
+            hiddenFormFields = modal.query('input[type=hidden]');
+
+        Ext.iterate(hiddenFormFields, function(field) {
+            eventData[field.name] = field.value;
+        });
 
         modal.down('.modal-container')
             .addCls('saving');

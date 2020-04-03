@@ -36,17 +36,38 @@ class RequestHandler extends \RequestHandler
             }
         }
 
+        $attendees = [];
+
+        if (!empty($requestData['attendees'])) {
+            if (is_string($requestData['attendees'])) {
+                $attendees = explode(',', $requestData['attendees']);
+            } elseif (is_array($requestData['attendees'])) {
+                $attendees = $requestData['attendees'];
+            }
+        }
+
+        $students = \Slate\RecordsRequestHandler::getRequestedStudents();
+        if (!empty($students)) {
+            $attendees = array_merge(
+                $attendees,
+                array_filter(array_map(function($student) {
+                    return $student->PrimaryEmail;
+                }, $students))
+            );
+        }
+
         $command = new CreateEvent(
             $user,
             $requestData['calendarId'] ?: 'primary',
             $requestData['summary'],
             strtotime($requestData['startDateTime']),
             strtotime($requestData['endDateTime']),
-            $requestData['attendees'],
+            $attendees,
             $requestData
         );
 
-        $response = API::execute($command->buildRequest());
+        $request = $command->buildRequest();
+        $response = API::execute($request);
 
         return static::respondJson(
             'google-calendar-create-event',

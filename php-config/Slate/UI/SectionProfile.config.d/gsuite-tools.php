@@ -9,7 +9,7 @@ Slate\UI\SectionProfile::$sources[] = function (Slate\Courses\Section $Section) 
         }, $Section->ActiveStudents));
         $links['Create Section Event'] = [
             '_href' => '#create-google-calendar-event',
-            '_attribs' => sprintf('data-event-attendees="%s"', join(',', $sectionStudentEmails))
+            '_attribs' => sprintf('data-event-students="section:%s"', $Section->Code)
         ];
     }
 
