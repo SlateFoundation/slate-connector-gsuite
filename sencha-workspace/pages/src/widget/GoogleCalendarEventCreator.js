@@ -93,10 +93,11 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
                 if (t.hasCls('modal-close-button' || t.hasCls('modal-cancel-button'))) {
                     me.destroyModal();
                 } else if (t.hasCls('modal-save-button')) {
-                    if (!formEl.dom.checkValidity()) {
-                        modal.down('.modal-info').update('Invalid Form. Please check all fields and try again.');
-                        return;
-                    }
+                    // needs to be "fixed"
+                    // if (!formEl.dom.checkValidity()) {
+                    //     modal.down('.modal-info').update('Invalid Form. Please check all fields and try again.');
+                    //     return;
+                    // }
 
                     me.submitEvent();
                 }
