@@ -9,7 +9,12 @@ Slate\UI\SectionProfile::$sources[] = function (Slate\Courses\Section $Section) 
         }, $Section->ActiveStudents));
         $links['Create Section Event'] = [
             '_href' => '#create-google-calendar-event',
-            '_attribs' => sprintf('data-event-students="section:%s"', $Section->Code)
+            '_attribs' => sprintf(
+                'data-title="%s" data-description="%s" data-event-students="section:%s" data-event-create-hangout="1"',
+                sprintf('Create %s Hangout', $Section->Title),
+                'Create a Google Calendar Event with all Active Students in this section automatically added as attendees.',
+                $Section->Code
+            )
         ];
     }
 
