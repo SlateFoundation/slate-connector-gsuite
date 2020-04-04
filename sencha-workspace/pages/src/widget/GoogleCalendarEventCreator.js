@@ -265,7 +265,10 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
 
             // validate date+time fields
             if (fieldValidators[field.name]) {
-                return valid = !!(validators[fieldValidators[field.name]](field.value));
+                valid = !!(validators[fieldValidators[field.name]](field.value));
+                if (valid === false) {
+                    return false;
+                }
             }
         });
 
