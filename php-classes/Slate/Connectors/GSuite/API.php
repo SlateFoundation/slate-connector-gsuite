@@ -6,7 +6,7 @@ use Cache;
 use Emergence\Logger;
 use Emergence\Http\Message\Request;
 use Emergence\Http\Message\Uri;
-use Emergence\People\IUser;
+use Emergence\People\IPerson;
 use Emergence\People\ContactPoint\Email;
 use Firebase\JWT\JWT;
 use Psr\Http\Message\MessageInterface;
@@ -145,7 +145,7 @@ class API
         return $result;
     }
 
-    public static function getDomainEmail(IUser $User = null)
+    public static function getDomainEmail(IPerson $User = null)
     {
         if (!$User) {
             $User = $GLOBALS['Session']->Person;

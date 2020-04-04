@@ -64,7 +64,8 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
             attendees = Ext.isString(attendeesValue) ? attendeesValue.split(',') : [],
             modal,
             formEl,
-            customFormFields = {};
+            customFormFields = {},
+            _onFormSubmit;
 
         Ext.iterate(target.getAttributes(), function(field, value) {
             var matches;
@@ -85,6 +86,21 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
             true
         );
 
+
+        _onFormSubmit = function() {
+            modal.down('.modal-info').update('');
+            if (me.validateForm(formEl) === false) {
+                modal.down('.modal-info').update('Invalid Form. Please check all fields and try again.');
+                return;
+            }
+            me.submitEvent();
+        };
+
+        formEl.on('submit', function(ev) {
+            ev.preventDefault();
+            _onFormSubmit();
+        });
+
         // modal button event handlers
         modal.on(
             'click',
@@ -93,12 +109,7 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
                 if (t.hasCls('modal-close-button' || t.hasCls('modal-cancel-button'))) {
                     me.destroyModal();
                 } else if (t.hasCls('modal-save-button')) {
-                    if (!formEl.dom.checkValidity()) {
-                        modal.down('.modal-info').update('Invalid Form. Please check all fields and try again.');
-                        return;
-                    }
-
-                    me.submitEvent();
+                    _onFormSubmit();
                 }
             },
             null,
@@ -167,6 +178,7 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
                         type: 'date',
                         cls: 'field-control',
                         name: 'start_date',
+                        placeholder: 'yyyy-mm-dd',
                         placeholder: 'Start Date',
                         required: true
                     }]
@@ -182,8 +194,7 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
                         type: 'time',
                         cls: 'field-control',
                         name: 'start_time',
-                        placeholder: 'End Time',
-                        required: true
+                        placeholder: 'hh:mm (24hr format)',
                     }]
                 }]
             },{
@@ -201,8 +212,7 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
                         type: 'date',
                         cls: 'field-control',
                         name: 'end_date',
-                        placeholder: 'End Date',
-                        required: true
+                        placeholder: 'yyyy-mm-dd',
                     }]
                 },{
                     tag: 'label',
@@ -216,8 +226,7 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
                         type: 'time',
                         cls: 'field-control',
                         name: 'end_time',
-                        placeholder: 'End Time',
-                        required: true
+                        placeholder: 'hh:mm (24hr format)',
                     }]
                 }]
             }, {
@@ -228,6 +237,40 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
 
         me.setFormEl(formEl);
         return formEl;
+    },
+
+    validateForm: function(formEl) {
+        var me = this,
+            modal = me.getModal(),
+            formFields = modal.query('input[required]'),
+            validators = {
+                date: function(value) {
+                    return value && value.match(/^(\d{4})[\-\/](\d{2})[\-\/](\d{2})$/);
+                },
+                time: function(value) {
+                    return value && value.match(/^([0-2]\d):([0-5]\d)$/)
+                }
+            },
+            fieldValidators = {
+                start_date: 'date',
+                end_date: 'date',
+                start_time: 'time',
+                end_time: 'time'
+            },
+            valid = true;
+
+        Ext.each(formFields, function(field) {
+            if (!field.value) {
+                return valid = false;
+            }
+
+            // validate date+time fields
+            if (fieldValidators[field.name]) {
+                return valid = !!(validators[fieldValidators[field.name]](field.value));
+            }
+        });
+
+        return valid;
     },
 
     submitEvent: function() {
