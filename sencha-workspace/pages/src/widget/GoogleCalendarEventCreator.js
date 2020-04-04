@@ -179,7 +179,6 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
                         cls: 'field-control',
                         name: 'start_date',
                         placeholder: 'yyyy-mm-dd',
-                        placeholder: 'Start Date',
                         required: true
                     }]
                 },{
