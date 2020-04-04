@@ -44,9 +44,10 @@ class RequestHandler extends \RequestHandler
             } elseif (is_array($requestData['attendees'])) {
                 $attendees = $requestData['attendees'];
             }
+            unset($requestData['attendees']);
         }
 
-        $students = \Slate\RecordsRequestHandler::getRequestedStudents();
+        $students = \Slate\RecordsRequestHandler::getRequestedStudents('students');
         if (!empty($students)) {
             $attendees = array_merge(
                 $attendees,
@@ -54,6 +55,20 @@ class RequestHandler extends \RequestHandler
                     return $student->PrimaryEmail;
                 }, $students))
             );
+            unset($requestData['students']);
+        }
+
+        $extraParams = [
+            'conferenceDataVersion' => true
+        ];
+
+        if (!empty($requestData['create-hangout'])) {
+            $extraParams['conferenceData'] = [
+                'createRequest' => [
+                    'requestId' => time()
+                ]
+            ];
+            unset($requestData['create-hangout']);
         }
 
         $command = new CreateEvent(
@@ -63,7 +78,7 @@ class RequestHandler extends \RequestHandler
             strtotime($requestData['startDateTime']),
             strtotime($requestData['endDateTime']),
             $attendees,
-            $requestData
+            $extraParams
         );
 
         $request = $command->buildRequest();

@@ -75,7 +75,7 @@ class CreateEvent implements ICommand
 
         $uri = new Uri(sprintf('/calendar/v3/calendars/%s/events', $this->calendarId));
 
-        if (isset($params['conferenceData']['createRequest'])) {
+        if (isset($params['conferenceDataVersion'])) {
             $uri = Uri::withQueryValue($uri, 'conferenceDataVersion', 1);
         }
 

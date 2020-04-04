@@ -203,6 +203,11 @@ class API
 
             $response = static::buildAndExecuteRequest('POST', '/oauth2/v4/token', $params);
             $token = $response['access_token'];
+
+            if (!$token) {
+                throw new \Exception($response['error'] ?: 'Unable to get Access Token. Please contact an Administrator.');
+            }
+
             Cache::store(
                 $cacheKey,
                 $token,

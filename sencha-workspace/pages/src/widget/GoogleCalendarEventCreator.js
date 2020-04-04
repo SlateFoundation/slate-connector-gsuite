@@ -17,7 +17,7 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
                         '<h2 class="modal-title">{title}</h2>',
                     '</header>',
                     '<div class="modal-body">',
-                        '<div class="modal-info"></div>',
+                        '<div class="modal-description">{description}</div>',
                         '{formHtml}',
                         '<div class="attendees">',
                             '<tpl if="attendees.length &gt; 0">',
@@ -29,6 +29,7 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
                                 '</ul>',
                             '</tpl>',
                         '</div>',
+                        '<div class="modal-info"></div>',
                     '</div>',
                     '<footer class="modal-buttons">',
                         '<button class="modal-cancel-button">Cancel</button>',
@@ -80,6 +81,7 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
             body,
             {
                 title: target.getAttribute('data-title') || 'Create Google Calendar Event',
+                description: target.getAttribute('data-description') || '',
                 formHtml: formEl.dom.outerHTML,
                 attendees: attendees
             },
@@ -179,7 +181,6 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
                         cls: 'field-control',
                         name: 'start_date',
                         placeholder: 'yyyy-mm-dd',
-                        placeholder: 'Start Date',
                         required: true
                     }]
                 },{
@@ -266,7 +267,10 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
 
             // validate date+time fields
             if (fieldValidators[field.name]) {
-                return valid = !!(validators[fieldValidators[field.name]](field.value));
+                valid = !!(validators[fieldValidators[field.name]](field.value));
+                if (valid === false) {
+                    return false;
+                }
             }
         });
 
@@ -288,10 +292,7 @@ Ext.define('Site.widget.GoogleCalendarEventCreator', {
                 calendarId: 'primary',
                 summary: titleField.getValue(),
                 startDateTime: startDateField.getValue() + 'T' + startTimeField.getValue() + ':00' + localTimezone,
-                endDateTime: endDateField.getValue() + 'T' + endTimeField.getValue() + ':00' + localTimezone,
-                // create hangout support
-                'conferenceData[createRequest][requestId]': date.getTime().toString(),
-                conferenceDataVersion: 1
+                endDateTime: endDateField.getValue() + 'T' + endTimeField.getValue() + ':00' + localTimezone
 
             },
             hiddenFormFields = modal.query('input[type=hidden]');
