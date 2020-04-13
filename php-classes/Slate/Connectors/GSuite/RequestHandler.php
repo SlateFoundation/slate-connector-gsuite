@@ -23,12 +23,12 @@ class RequestHandler extends \RequestHandler
 
     public static function handleCreateEventRequest()
     {
-
         $GLOBALS['Session']->requireAuthentication();
 
         $requestData = $_REQUEST;
-        $user = $GLOBALS['Session']->Person->PrimaryEmail;
+        $user = API::getDomainEmail($GLOBALS['Session']->Person);
 
+        // only admin can create on behalf of other users
         if ($GLOBALS['Session']->hasAccountLevel('Administrator')) {
             if (!empty($requestData['user'])) {
                 $user = $requestData['user'];
@@ -36,26 +36,20 @@ class RequestHandler extends \RequestHandler
             }
         }
 
-        $attendees = [];
+        $attendees = static::getRequestedAttendees();
 
-        if (!empty($requestData['attendees'])) {
-            if (is_string($requestData['attendees'])) {
-                $attendees = explode(',', $requestData['attendees']);
-            } elseif (is_array($requestData['attendees'])) {
-                $attendees = $requestData['attendees'];
-            }
-            unset($requestData['attendees']);
-        }
-
-        $students = \Slate\RecordsRequestHandler::getRequestedStudents('students');
-        if (!empty($students)) {
+        $Section = \Slate\RecordsRequestHandler::getRequestedSection('section');
+        if ($Section) {
+            // append students & teachers as attendants
             $attendees = array_merge(
                 $attendees,
-                array_filter(array_map(function($student) {
-                    return $student->PrimaryEmail;
-                }, $students))
+                array_filter(array_map(function($Student) {
+                    return $Student->PrimaryEmail;
+                }, $Section->ActiveStudents)),
+                array_filter(array_map(function($Teacher) {
+                    return $Teacher->PrimaryEmail;
+                }, $Section->ActiveTeachers))
             );
-            unset($requestData['students']);
         }
 
         $extraParams = [
@@ -92,5 +86,21 @@ class RequestHandler extends \RequestHandler
             ]
         );
 
+    }
+
+    public static function getRequestedAttendees($fieldName = 'attendees')
+    {
+        $attendees = [];
+
+        if (!empty($_REQUEST[$fieldName])) {
+            if (is_string($_REQUEST[$fieldName])) {
+                $attendees = explode(',', $_REQUEST[$fieldName]);
+            } elseif (is_array($_REQUEST[$fieldName])) {
+                $attendees = $_REQUEST[$fieldName];
+            }
+            unset($_REQUEST[$fieldName]);
+        }
+
+        return $attendees;
     }
 }
