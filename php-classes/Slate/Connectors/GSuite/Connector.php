@@ -112,11 +112,13 @@ class Connector extends AbstractConnector implements ISynchronize
         // get existing users and map by email address
         $googleUsers = [];
         $googleIds = [];
+        $googleEmails = [];
 
         foreach (API::getAllUsers(['fields' => 'users(id,name,primaryEmail)']) AS $googleUser) {
             $googleUsername = strstr($googleUser['primaryEmail'], '@', true);
             $googleUsers[$googleUsername] = $googleUser;
             $googleIds[$googleUser['id']] = $googleUsername;
+            $googleEmails[$googleUser['primaryEmail']] = $googleUsername;
         }
 
         $Job->notice('Loaded {totalUsers} users from Google Apps for analysis', [
@@ -154,6 +156,12 @@ class Connector extends AbstractConnector implements ISynchronize
             // try to match existing remote user by username
             if (!$googleUser && array_key_exists($User->Username, $googleUsers)) {
                 $googleUser = $googleUsers[$User->Username];
+            }
+
+
+            // try to match existing remote user by email
+            if ($DomainEmailPoint && !$googleUser && array_key_exists($DomainEmailPoint->address, $googleEmails)) {
+                $googleUser = $googleUsers[$googleEmails[$DomainEmailPoint->address]];
             }
 
 
