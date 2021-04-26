@@ -160,10 +160,10 @@ class Connector extends AbstractConnector implements ISynchronize
             // update existing remote user
             if ($googleUser) {
                 if (!$DomainEmailPoint) {
-                    $Job->error('Cannot update existing remote user {username} because they don\'t have an email contact point matching the domain', [
+                    $Job->debug('Cannot update existing remote user {username} because they don\'t have an email contact point matching the domain', [
                         'username' => $User->Username
                     ]);
-                    $results['outcome']['failed']['no-domain-email-contact-point']++;
+                    $results['outcome']['skipped']['existing-user-no-domain-email-contact-point']++;
                     continue;
                 }
 
@@ -205,10 +205,6 @@ class Connector extends AbstractConnector implements ISynchronize
 
                 // log and apply changes
                 if ($changes->hasChanges()) {
-                    // dump([
-                    //     $googleUser['id'],
-                    //     DataUtil::expandDottedKeysToTree($changes->getNewValues())
-                    // ]);
                     if (!$pretend) {
                         try {
                             API::patchUser(
