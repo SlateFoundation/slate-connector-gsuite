@@ -205,10 +205,6 @@ class Connector extends AbstractConnector implements ISynchronize
 
                 // log and apply changes
                 if ($changes->hasChanges()) {
-                    // dump([
-                    //     $googleUser['id'],
-                    //     DataUtil::expandDottedKeysToTree($changes->getNewValues())
-                    // ]);
                     if (!$pretend) {
                         try {
                             API::patchUser(
