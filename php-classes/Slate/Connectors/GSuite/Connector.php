@@ -121,7 +121,7 @@ class Connector extends AbstractConnector implements ISynchronize
             $googleEmails[$googleUser['primaryEmail']] = $googleUsername;
         }
 
-        $Job->notice('Loaded {totalUsers} users from Google Apps for analysis', [
+        $Job->notice('Loaded {totalUsers} users from Google Workspace for analysis', [
             'totalUsers' => count($googleUsers)
         ]);
         $results['analyzed']['remote'] = count($googleUsers);

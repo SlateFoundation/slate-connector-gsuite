@@ -1,9 +1,9 @@
 {extends designs/site.tpl}
 
-{block title}Push to Google Apps &mdash; {$dwoo.parent}{/block}
+{block title}Push to Google Workspace &mdash; {$dwoo.parent}{/block}
 
 {block content}
-    <h1>Push to Google Apps</h1>
+    <h1>Push to Google Workspace</h1>
 
 	<h2>Input</h2>
     <h3>Run from template</h3>
@@ -43,7 +43,7 @@
     				Push Users
     				<input type="checkbox" name="pushUsers" value="true" {refill field=pushUsers checked="true" default="true"}>
     			</label>
-    			<span class="hint">Check to push users to Google Apps</span>
+    			<span class="hint">Check to push users to Google Workspace</span>
     		</p>
         </fieldset>
 
