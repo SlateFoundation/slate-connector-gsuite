@@ -69,10 +69,6 @@ class CreateEvent implements ICommand
             'attendees' => $this->getFormattedAttendees()
         ]);
 
-        $options = [
-            'json_encode' => true
-        ];
-
         $uri = new Uri(sprintf('/calendar/v3/calendars/%s/events', $this->calendarId));
 
         if (isset($params['conferenceDataVersion'])) {
@@ -83,8 +79,7 @@ class CreateEvent implements ICommand
             'POST',
             $uri,
             $params,
-            $headers,
-            $options
+            $headers
         );
     }
 

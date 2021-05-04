@@ -79,12 +79,12 @@ class API
         $body = null;
 
         if ('get' != $method && !empty($params)) {
-            if (isset($options['json_encode'])) {
-                $headers['Content-Type'] = 'application/json';
-                $body = json_encode($params);
-            } else {
+            if (!empty($options['form_encode'])) {
                 $headers['Content-Type'] = 'application/x-www-form-urlencoded';
                 $body = http_build_query($params);
+            } else {
+                $headers['Content-Type'] = 'application/json';
+                $body = json_encode($params);
             }
         }
 
