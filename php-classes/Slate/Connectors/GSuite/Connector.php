@@ -213,29 +213,43 @@ class Connector extends AbstractConnector implements ISynchronize
 
                 // log and apply changes
                 if ($changes->hasChanges()) {
-                    if (!$pretend) {
+                    if ($pretend) {
+                        $Job->notice('Updating user {username}', [
+                            'action' => 'update',
+                            'changes' => $changes,
+                            'username' => $User->Username
+                        ]);
+                        $results['outcome']['updated']++;
+                    } else {
                         try {
-                            API::patchUser(
+                            $googleResponse = API::patchUser(
                                 $googleUser['id'],
                                 DataUtil::expandDottedKeysToTree($changes->getNewValues())
                             );
                         } catch (\Exception $e) {
-                            $Job->error('Failed to patch Google user {googleId}: {errorMessage}', [
+                            $Job->error('Failed to update Google user {googleId}: {errorMessage}', [
                                 'googleId' => $googleUser['id'],
                                 'errorMessage' => $e->getMessage()
                             ]);
                             $results['outcome']['request-failed'][$e->getCode()]++;
                             continue;
                         }
+
+                        if (empty($googleResponse['error'])) {
+                            $Job->notice('Updated user {username}', [
+                                'username' => $User->Username
+                            ]);
+                            $results['outcome']['updated']++;
+
+                        } else {
+                            $Job->error('Failed to update user {username}, received error from Google: {error}', [
+                                'username' => $User->Username,
+                                'error' => $googleResponse['error']
+                            ]);
+                            $results['outcome']['failed']['api-error'][$googleResponse['error']['message']]++;
+                        }
                     }
 
-                    $Job->notice('Updating user {username}', [
-                        'action' => 'update',
-                        'changes' => $changes,
-                        'username' => $User->Username
-                    ]);
-
-                    $results['outcome']['updated']++;
                 } else {
                     $Job->debug('Remote user {username} matches local user', [
                         'username' => $User->Username
@@ -303,11 +317,11 @@ class Connector extends AbstractConnector implements ISynchronize
                         'ExternalIdentifier' => $googleResponse['id']
                     ], true);
                 } else {
-                    $Job->error('Failed to create user {username}, received error from Google: {errorMessage}', [
+                    $Job->error('Failed to create user {username}, received error from Google: {error}', [
                         'username' => $User->Username,
-                        'errorMessage' => $googleResponse['error']
+                        'error' => $googleResponse['error']
                     ]);
-                    $results['outcome']['failed']['api-error'][$googleResponse['error']]++;
+                    $results['outcome']['failed']['api-error'][$googleResponse['error']['message']]++;
                 }
             }
         } // end of Slate users loop
