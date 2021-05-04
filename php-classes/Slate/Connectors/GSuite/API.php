@@ -270,6 +270,6 @@ class API
     public static function createUser($data)
     {
         $headers = static::getAuthorizationHeaders('https://www.googleapis.com/auth/admin.directory.user', (string)static::getDomainEmail());
-        return static::executeRequest('POST', "/admin/directory/v1/users", $data, $headers);
+        return static::buildAndExecuteRequest('POST', "/admin/directory/v1/users", $data, $headers);
     }
 }
