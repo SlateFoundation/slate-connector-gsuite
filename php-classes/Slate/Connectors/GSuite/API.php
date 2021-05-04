@@ -79,12 +79,12 @@ class API
         $body = null;
 
         if ('get' != $method && !empty($params)) {
-            if (isset($options['json_encode'])) {
-                $headers['Content-Type'] = 'application/json';
-                $body = json_encode($params);
-            } else {
+            if (!empty($options['form_encode'])) {
                 $headers['Content-Type'] = 'application/x-www-form-urlencoded';
                 $body = http_build_query($params);
+            } else {
+                $headers['Content-Type'] = 'application/json';
+                $body = json_encode($params);
             }
         }
 
@@ -270,6 +270,6 @@ class API
     public static function createUser($data)
     {
         $headers = static::getAuthorizationHeaders('https://www.googleapis.com/auth/admin.directory.user', (string)static::getDomainEmail());
-        return static::executeRequest('POST', "/admin/directory/v1/users", $data, $headers);
+        return static::buildAndExecuteRequest('POST', "/admin/directory/v1/users", $data, $headers);
     }
 }
