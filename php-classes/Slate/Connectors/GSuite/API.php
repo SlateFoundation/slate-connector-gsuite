@@ -133,16 +133,39 @@ class API
         curl_setopt($ch, CURLOPT_HTTPHEADER, static::formatHeaders($Request->getHeaders()));
 
         // execute request
-        $result = curl_exec($ch);
+        $response = curl_exec($ch);
+        $responseCode = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
         curl_close($ch);
 
+        // close output stream or parse response JSON
         if (isset($fp)) {
             fclose($fp);
-        } elseif (!isset($options['decodeJson']) || $options['decodeJson']) {
-            $result = json_decode($result, true);
+        } else {
+            $responseData = json_decode($response, true);
         }
 
-        return $result;
+        // check for errors
+        if ($responseCode >= 400 || $responseCode < 200) {
+            $errorMessage = null;
+
+            if (!empty($responseData)
+                && !empty($responseData['error'])
+                && !empty($responseData['error']['message'])
+            ) {
+                $errorMessage = $responseData['error']['message'];
+            }
+
+            throw new \RuntimeException(
+                (
+                    $errorMessage
+                    ? "Google API request failed with error: {$errorMessage}"
+                    : "Google API request failed with code: {$responseCode}"
+                ),
+                $responseCode
+            );
+        }
+
+        return $responseData;
     }
 
     public static function getDomainEmail(IPerson $User = null)
