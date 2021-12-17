@@ -56,13 +56,8 @@ class Connector extends AbstractConnector implements ISynchronize
             return static::throwError('Cannot execute job, privateKey not configured');
         } elseif (empty(API::$domain)) {
             return static::throwError('Cannot execute job, domain not configured');
-        } elseif (empty(API::getDomainEmail())) {
-            // \MICS::dump([
-            //     (string)$GLOBALS['Session']->Person->PrimaryEmail,
-            //     API::$domain,
-            //     API::getDomainEmail($GLOBALS['Session']->Person)
-            // ], 'info');
-            return static::throwError('Cannot execute job, domain email not configured for current user');
+        } elseif (empty(API::$adminUser)) {
+            return static::throwError('Cannot execute job, admin user not configured');
         }
 
         // update job status

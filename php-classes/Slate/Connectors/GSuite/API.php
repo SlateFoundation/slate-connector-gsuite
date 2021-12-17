@@ -20,6 +20,7 @@ class API
     public static $privateKey;
 
     public static $domain;
+    public static $adminUser;
 
     public static $skew = 60;
     public static $expiry = 3600;
@@ -133,16 +134,39 @@ class API
         curl_setopt($ch, CURLOPT_HTTPHEADER, static::formatHeaders($Request->getHeaders()));
 
         // execute request
-        $result = curl_exec($ch);
+        $response = curl_exec($ch);
+        $responseCode = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
         curl_close($ch);
 
+        // close output stream or parse response JSON
         if (isset($fp)) {
             fclose($fp);
-        } elseif (!isset($options['decodeJson']) || $options['decodeJson']) {
-            $result = json_decode($result, true);
+        } else {
+            $responseData = json_decode($response, true);
         }
 
-        return $result;
+        // check for errors
+        if ($responseCode >= 400 || $responseCode < 200) {
+            $errorMessage = null;
+
+            if (!empty($responseData)
+                && !empty($responseData['error'])
+                && !empty($responseData['error']['message'])
+            ) {
+                $errorMessage = $responseData['error']['message'];
+            }
+
+            throw new \RuntimeException(
+                (
+                    $errorMessage
+                    ? "Google API request failed with error: {$errorMessage}"
+                    : "Google API request failed with code: {$responseCode}"
+                ),
+                $responseCode
+            );
+        }
+
+        return $responseData;
     }
 
     public static function getDomainEmail(IPerson $User = null)
@@ -180,21 +204,22 @@ class API
 
     public static function getAccessToken($scope, $user = null, $ignoreCache = false)
     {
-        $cacheKey = sprintf('gsuite_accesstoken:%s/%s', $scope, $user ? $user : static::$clientEmail);
+        if (!$user) {
+            $user = static::$adminUser;
+        }
+
+        $cacheKey = sprintf('gsuite_accesstoken:%s/%s', $scope, $user);
 
         if ($ignoreCache === true || !$token = Cache::fetch($cacheKey)) {
 
             $assertion = [
                 'iss' => static::$clientEmail,
+                'sub' => $user,
                 'aud' => (string)static::buildUrl('/oauth2/v4/token'),
                 'exp' => time() + static::$expiry,
                 'iat' => time() - static::$skew,
                 'scope' => $scope
             ];
-
-            if (!empty($user)) {
-                $assertion['sub'] = $user;
-            }
 
             $params = [
                 'assertion' => JWT::encode($assertion, static::$privateKey, 'RS256'),
@@ -246,7 +271,7 @@ class API
 
     public static function getAllUsers($params = [])
     {
-        $headers = static::getAuthorizationHeaders('https://www.googleapis.com/auth/admin.directory.user', (string)static::getDomainEmail());
+        $headers = static::getAuthorizationHeaders('https://www.googleapis.com/auth/admin.directory.user');
 
         $params['domain'] = static::$domain;
         $path = new Uri('https://www.googleapis.com/admin/directory/v1/users');
@@ -262,14 +287,14 @@ class API
     // Patch user: https://developers.google.com/admin-sdk/directory/v1/reference/users/patch
     public static function patchUser($userKey, $data)
     {
-        $headers = static::getAuthorizationHeaders('https://www.googleapis.com/auth/admin.directory.user', (string)static::getDomainEmail());
+        $headers = static::getAuthorizationHeaders('https://www.googleapis.com/auth/admin.directory.user');
         return static::buildAndExecuteRequest('PATCH', "/admin/directory/v1/users/$userKey", $data, $headers);
     }
 
     // Create user: https://developers.google.com/admin-sdk/directory/v1/reference/users/insert
     public static function createUser($data)
     {
-        $headers = static::getAuthorizationHeaders('https://www.googleapis.com/auth/admin.directory.user', (string)static::getDomainEmail());
+        $headers = static::getAuthorizationHeaders('https://www.googleapis.com/auth/admin.directory.user');
         return static::buildAndExecuteRequest('POST', "/admin/directory/v1/users", $data, $headers);
     }
 }
