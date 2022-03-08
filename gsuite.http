@@ -1,0 +1,44 @@
+@baseUrl = https://www.googleapis.com
+@authAssertion = ...
+@testUserId = 101895279326331084119
+
+###
+
+# @name getToken
+POST {{baseUrl}}/oauth2/v4/token HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{
+    "assertion": "{{authAssertion}}",
+    "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer"
+}
+
+###
+
+# @name getAllUsers
+GET {{baseUrl}}/admin/directory/v1/users?fields=users%28id%2Cname%2CprimaryEmail%29%2CnextPageToken&domain=scienceleadership.org&maxResults=500 HTTP/1.1
+Authorization: Bearer {{getToken.response.body.$.access_token}}
+Accept: application/json
+
+###
+
+# @name getPerson
+GET {{baseUrl}}/admin/directory/v1/users/{{testUserId}} HTTP/1.1
+Authorization: Bearer {{getToken.response.body.$.access_token}}
+Accept: application/json
+
+###
+
+# @name patchPerson
+PATCH {{baseUrl}}/admin/directory/v1/users/{{testUserId}} HTTP/1.1
+Authorization: Bearer {{getToken.response.body.$.access_token}}
+Accept: application/json
+Content-Type: application/json
+
+{
+    "name": {
+        "givenName": "Test",
+        "familyName": "Demo"
+    }
+}
