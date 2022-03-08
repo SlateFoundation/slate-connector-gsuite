@@ -31,6 +31,7 @@ This module uses **Domain-Wide Delegation** so that an administrator can connect
 
 2. Open the downloaded **JSON** file from creating the key, and populate the `API::$clientId`, `API::$clientEmail`, and `API::$privateKey` settings in `php-config/Slate/Connectors/GSuite/API.config.d/credentials.php`
     - Configure `API::$domain` with the primary domain name associated with the Google Workspace
+    - Configure `API::$adminUser` with the email address of an admin user Slate can act as when making changes in the Google Workspace
 
 3. Enable the following APIs within the project created at the beginning of step 1:
     - [Admin SDK API](https://console.cloud.google.com/apis/library/admin.googleapis.com)

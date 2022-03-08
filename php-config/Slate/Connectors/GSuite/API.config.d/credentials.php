@@ -8,3 +8,4 @@ use Slate\Connectors\GSuite\API;
 // API::$clientEmail = 'service-account-email@gserviceaccount.com';
 // API::$privateKey = 'private-rsa-key';
 // API::$domain = 'example.org';
+// API::$adminUser = 'admin@example.org';
