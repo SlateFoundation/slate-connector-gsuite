@@ -119,15 +119,18 @@ class API
         }
 
         // configure method and body
-        if (strtolower($Request->getMethod()) == 'post') {
+        $method = strtolower($Request->getMethod());
+        if ($method != 'get') {
             curl_setopt($ch, CURLOPT_POST, true);
 
-            if (!empty((string)$Request->getBody())) {
-                curl_setopt($ch, CURLOPT_POSTFIELDS, (string)$Request->getBody());
+            if ($method != 'post') {
+                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
             }
 
-        } else if (strtolower($Request->getMethod()) != 'get') {
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $Request->getMethod());
+            $body = (string)$Request->getBody();
+            if ($body) {
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+            }
         }
 
         // configure headers
