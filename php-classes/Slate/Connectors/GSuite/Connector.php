@@ -232,6 +232,8 @@ class Connector extends AbstractConnector implements ISynchronize
 
                         if (empty($googleResponse['error'])) {
                             $Job->notice('Updated user {username}', [
+                                'action' => 'update',
+                                'changes' => $changes,
                                 'username' => $User->Username
                             ]);
                             $results['outcome']['updated']++;
@@ -239,6 +241,8 @@ class Connector extends AbstractConnector implements ISynchronize
                         } else {
                             $Job->error('Failed to update user {username}, received error from Google: {error}', [
                                 'username' => $User->Username,
+                                'action' => 'update',
+                                'changes' => $changes,
                                 'error' => $googleResponse['error']
                             ]);
                             $results['outcome']['failed']['api-error'][$googleResponse['error']['message']]++;
