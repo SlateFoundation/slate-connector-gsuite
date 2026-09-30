@@ -259,14 +259,15 @@ class API
         }
 
         $page = static::buildAndExecuteRequest('GET', $path, $params, $headers, $options);
-        $results = $page[$resultsKey];
+        // a page with no results omits the key, and an empty body decodes to null
+        $results = $page[$resultsKey] ?? [];
 
         while (!empty($page['nextPageToken'])) {
             $page = static::buildAndExecuteRequest('GET', $path, array_merge($params, [
                 'pageToken' => $page['nextPageToken']
             ]), $headers, $options);
 
-            $results = array_merge($results, $page[$resultsKey]);
+            $results = array_merge($results, $page[$resultsKey] ?? []);
         }
 
         return $results;
